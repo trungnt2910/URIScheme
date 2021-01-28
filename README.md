@@ -1,10 +1,5 @@
 # URIScheme
 
-Channel | Status
--|-
-CI | [![CI](https://github.com/HMBSbige/URIScheme/workflows/CI/badge.svg)](https://github.com/HMBSbige/URIScheme/actions)
-NuGet.org | [![NuGet.org](https://img.shields.io/nuget/v/URIScheme.svg)](https://www.nuget.org/packages/URIScheme/)
-
 # Usage
 ```csharp
 const string key = @"ssa";
@@ -17,3 +12,9 @@ service.Set();
 
 service.Delete();
 ```
+
+# Notes
+
+This library currently supports only Windows. However, efforts are being made to port this, first to Linux, then to MacOS.
+
+If you know how to register URI schemes on other platforms, feel free to make a pull request.

@@ -4,7 +4,7 @@ using URIScheme.Enums;
 
 namespace URIScheme
 {
-	public class URISchemeService
+	public class WindowsURISchemeService : IURISchemeSerivce
 	{
 		public RegisterType Type { get; }
 		public string Key { get; }
@@ -14,7 +14,7 @@ namespace URIScheme
 		private const string RegistryPath = @"Software\Classes";
 		private string Value => $@"""{RunPath}"" ""%1""";
 
-		public URISchemeService(string key, string description, string runPath, RegisterType type = RegisterType.CurrentUser)
+		public WindowsURISchemeService(string key, string description, string runPath, RegisterType type = RegisterType.CurrentUser)
 		{
 			Key = key;
 			Description = description;
