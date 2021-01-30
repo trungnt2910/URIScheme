@@ -9,8 +9,8 @@ namespace URIScheme
 {
 	public interface IURISchemeSerivce
 	{
-		public bool Check();
-		public void Set();
-		public void Delete();
+		bool Check();
+		void Set();
+		void Delete();
 	}
 }

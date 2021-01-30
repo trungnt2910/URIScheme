@@ -6,10 +6,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using URIScheme.Enums;
+using URIScheme.Tools;
 
 namespace URIScheme
 {
-	public class URISchemeServiceFactory
+	public static class URISchemeServiceFactory
 	{
 		public static IURISchemeSerivce GetURISchemeSerivce(string key, string description, string runPath, RegisterType type = RegisterType.CurrentUser)
 		{
@@ -19,33 +20,19 @@ namespace URIScheme
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				if (IsGnome())
-					return new LinuxGnomeURISchemeService(key, description, runPath, type);
-				else
-					throw new PlatformNotSupportedException("URI schemes are not supported in this platform.");
+				if (IsXDG())
+				{
+					return new LinuxXdgURISchemeService(key, description, runPath, type);
+				}
+				throw new PlatformNotSupportedException("XDG tools are required");
 			}
 			throw new PlatformNotSupportedException("URI schemes are not supported in this platform.");
 		}
 
-		private static bool IsGnome()
+		private static bool IsXDG()
 		{
-			var command = new Process();
-			command.StartInfo.FileName = "gnome-shell";
-			command.StartInfo.Arguments = "--version";
-			command.StartInfo.UseShellExecute = false;
-			command.StartInfo.RedirectStandardOutput = true;
-
-			command.Start();
-
-			command.WaitForExit();
-
-			string result = command.StandardOutput.ReadToEnd().Trim();
-			string error = command.StandardError.ReadToEnd().Trim();
-
-			if (!string.IsNullOrEmpty(error))
-				return false;
-			else
-				return !string.IsNullOrEmpty(result);
+			var xdgCheckCommand = (new Command("xdg-settings", "--version")).Start();
+			return xdgCheckCommand.ReturnValue == 0;
 		}
 	}
 }
