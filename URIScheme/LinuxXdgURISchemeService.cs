@@ -35,6 +35,14 @@ namespace URIScheme
 			
 			return response == $"{scheme}.desktop";
 		}
+		public bool CheckAny()
+		{
+			var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
+			checkCommand.Start();
+			string response = checkCommand.Output.Trim();
+
+			return !string.IsNullOrEmpty(response);
+		}
 		public void Set()
 		{
 			string tmpFolder = Path.GetTempFileName();

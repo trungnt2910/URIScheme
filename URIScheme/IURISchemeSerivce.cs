@@ -10,6 +10,7 @@ namespace URIScheme
 	public interface IURISchemeSerivce
 	{
 		bool Check();
+		bool CheckAny();
 		void Set();
 		void Delete();
 	}
