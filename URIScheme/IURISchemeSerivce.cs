@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ namespace URIScheme
 	public interface IURISchemeSerivce
 	{
 		bool Check();
+		bool CheckAny();
 		void Set();
 		void Delete();
 	}

@@ -53,6 +53,30 @@ namespace URIScheme
 			return uriKey is string str && str == Value;
 		}
 
+		public bool CheckAny()
+		{
+			using var regKey = OpenRegKey(RegistryPath, false);
+			if (regKey is null)
+			{
+				throw new SystemException(@"Cannot open Registry!");
+			}
+			using var root = regKey.OpenSubKey(Key);
+
+			var protocolMark = root?.GetValue(@"URL Protocol");
+			if (protocolMark is null)
+			{
+				return false;
+			}
+
+			var uriKey = root?
+					.OpenSubKey(@"shell")?
+					.OpenSubKey(@"open")?
+					.OpenSubKey(@"command")?
+					.GetValue(null);
+
+			return uriKey is string;
+		}
+
 		public void Set()
 		{
 			using var regKey = OpenRegKey(RegistryPath, true);
@@ -74,4 +98,5 @@ namespace URIScheme
 			regKey?.DeleteSubKeyTree(Key);
 		}
 	}
+
 }
