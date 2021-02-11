@@ -69,6 +69,7 @@ namespace URIScheme
 			try
 			{
 				string xmlFileName = Path.Combine(tmpFolder, $"{scheme}.xml");
+				string desktopFileName = Path.Combine(tmpFolder, $"{scheme}.desktop");
 				using (var tempXMLFile = File.CreateText(xmlFileName))
 				{
 					GenerateXMLFile(tempXMLFile);
@@ -119,6 +120,8 @@ namespace URIScheme
 					break;
 					case RegisterType.LocalMachine:
 					{
+						Console.WriteLine("Pause.");
+						Console.ReadLine();
 						var desktopFileCommand = new SudoCommand("desktop-file-install", $"{desktopFileName}").Start().ThrowOnError();
 						var mimeapps = new MimeAppsList(RegisterType.LocalMachine);
 						var list = mimeapps.GetURISchemeHandlers(scheme);
