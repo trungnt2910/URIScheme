@@ -98,4 +98,5 @@ namespace URIScheme
 			regKey?.DeleteSubKeyTree(Key);
 		}
 	}
+
 }

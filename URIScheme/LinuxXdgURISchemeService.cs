@@ -15,33 +15,49 @@ namespace URIScheme
 		private readonly string scheme;
 		private readonly string name;
 		private readonly string exec;
-		private readonly bool doSudo;
+		private readonly RegisterType registerType;
 
 		private static readonly string UserDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share", "applications");
-		private static readonly string DefaultDir = Environment.GetEnvironmentVariable("DESKTOP_FILE_INSTALL_DIR");
+		private static readonly string DefaultDir = Environment.GetEnvironmentVariable("DESKTOP_FILE_INSTALL_DIR") ?? "/usr/share/applications";
 
 		public LinuxXdgURISchemeService(string key, string description, string runPath, RegisterType type = RegisterType.CurrentUser)
 		{
 			scheme = key;
 			name = description;
 			exec = $"{runPath} %u";
-			doSudo = type == RegisterType.LocalMachine;
+			registerType = type;
 		}
 		public bool Check()
 		{
-			var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
-			checkCommand.Start();
-			string response = checkCommand.Output.Trim();
-			
-			return response == $"{scheme}.desktop";
+			switch (registerType)
+			{
+				case RegisterType.CurrentUser:
+					var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
+					checkCommand.Start();
+					string response = checkCommand.Output.Trim();
+
+					return response == $"{scheme}.desktop";
+				case RegisterType.LocalMachine:
+					var appsList = new MimeAppsList(RegisterType.LocalMachine);
+					return appsList.GetURISchemeHandlers(scheme).FirstOrDefault() == $"{scheme}.desktop";
+			}
+			return false;
 		}
 		public bool CheckAny()
 		{
-			var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
-			checkCommand.Start();
-			string response = checkCommand.Output.Trim();
+			switch (registerType)
+			{
+				case RegisterType.CurrentUser:
+					var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
+					checkCommand.Start();
+					string response = checkCommand.Output.Trim();
 
-			return !string.IsNullOrEmpty(response);
+					return !string.IsNullOrEmpty(response);
+				case RegisterType.LocalMachine:
+					var appsList = new MimeAppsList(RegisterType.LocalMachine);
+					return appsList.GetURISchemeHandlers(scheme).Count != 0;
+			}
+			return false;
 		}
 		public void Set()
 		{
@@ -55,20 +71,28 @@ namespace URIScheme
 				{
 					GenerateXMLFile(tempXMLFile);
 				}
-				var installCommand = new Command("xdg-mime", $"install {xmlFileName} --novendor");
-				installCommand.Start();
-				if (installCommand.ReturnValue != 0)
+
+				switch (registerType)
 				{
-					throw new SystemException(installCommand.Error);
+					case RegisterType.CurrentUser:
+					{
+						var installCommand = new Command("xdg-mime", $"install {xmlFileName} --novendor").Start().ThrowOnError();
+					}
+					break;
+					case RegisterType.LocalMachine:
+					{
+						var installCommand = new SudoCommand("xdg-mime", $"install {xmlFileName} --mode system --novendor").Start().ThrowOnError();
+					}
+					break;
 				}
-				string desktopFileName = Path.Combine(tmpFolder, $"{scheme}.desktop");
+
 				using (var tempDesktopFile = File.CreateText(desktopFileName))
 				{
 					//				[Desktop Entry]
 					//				Name=LMAO
-					//				Exec =/ home / trung / lmao % u
+					//				Exec=/home/trung/lmao %u
 					//				Type=Application
-					//				NoDisplay = true
+					//				NoDisplay=true
 					//				Categories=Utility;
 					//				MimeType=x-scheme-handler/lmao;
 					tempDesktopFile.WriteLine("[Desktop Entry]");
@@ -80,12 +104,27 @@ namespace URIScheme
 					tempDesktopFile.WriteLine($"MimeType=x-scheme-handler/{scheme}");
 				}
 
-				var desktopFileCommand = (new Command("desktop-file-install", $"{desktopFileName} --dir={UserDir}")).Start().ThrowOnError();
-				var setDefaultCommand = (new Command("xdg-settings", $"set default-url-scheme-handler {scheme} {scheme}.desktop")).Start().ThrowOnError();
-			}
-			catch (Exception e)
-			{
-				throw e;
+				switch (registerType)
+				{
+					case RegisterType.CurrentUser:
+					{
+						var desktopFileCommand = new Command("desktop-file-install", $"{desktopFileName} --dir={UserDir}").Start().ThrowOnError();
+						var setDefaultCommand = new Command("xdg-settings", $"set default-url-scheme-handler {scheme} {scheme}.desktop")
+													.MapReturnValue(2, "runPath does not exist.")
+													.Start()
+													.ThrowOnError();
+					}
+					break;
+					case RegisterType.LocalMachine:
+					{
+						var desktopFileCommand = new SudoCommand("desktop-file-install", $"{desktopFileName}").Start().ThrowOnError();
+						var mimeapps = new MimeAppsList(RegisterType.LocalMachine);
+						var list = mimeapps.GetURISchemeHandlers(scheme);
+						list.Insert(0, $"{scheme}.desktop");
+						mimeapps.Save();
+					}
+					break;
+				}
 			}
 			finally
 			{
@@ -103,13 +142,26 @@ namespace URIScheme
 				using (var tempXMLFile = File.CreateText(xmlFileName))
 				{
 					GenerateXMLFile(tempXMLFile);
+				}				
+				switch (registerType)
+				{
+					case RegisterType.CurrentUser:
+					{
+						var uninstallCommand = new Command("xdg-mime", $"uninstall {xmlFileName} --novendor").Start().ThrowOnError();
+						var deleteDesktopFileCommand = new Command("rm", $"-f {Path.Combine(UserDir, $"{scheme}.desktop")}").Start().ThrowOnError();
+					}
+					break;
+					case RegisterType.LocalMachine:
+					{
+						var uninstallCommand = new SudoCommand("xdg-mime", $"uninstall {xmlFileName} --mode system --novendor").Start().ThrowOnError();
+						var deleteDesktopFileCommand = new SudoCommand("rm", $"-f {Path.Combine(DefaultDir, $"{scheme}.desktop")}").Start().ThrowOnError();
+						var mimeapps = new MimeAppsList(RegisterType.LocalMachine);
+						var list = mimeapps.GetURISchemeHandlers(scheme);
+						list.RemoveAll((s) => s == $"{scheme}.desktop");
+						mimeapps.Save();
+					}
+					break;
 				}
-				var uninstallCommand = (new Command("xdg-mime", $"uninstall {xmlFileName} --novendor")).Start().ThrowOnError();
-				var deleteDesktopFileCommand = (new Command("rm", $"-f {Path.Combine(UserDir, $"{scheme}.desktop")}")).Start().ThrowOnError();
-			}
-			catch (Exception e)
-			{
-				throw e;
 			}
 			finally
 			{

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -6,7 +7,8 @@ namespace URIScheme.Tools
 {
 	public class Command
 	{
-		private readonly Process process;
+		protected readonly Process process;
+		private readonly Dictionary<int, string> errorCodeMap;
 		public int ReturnValue { get; private set; }
 		public string Output { get; private set; }
 		public string Error { get; private set; }
@@ -27,9 +29,22 @@ namespace URIScheme.Tools
 			Output = null;
 			Error = null;
 			ReturnValue = 0;
+			errorCodeMap = new Dictionary<int, string>();
 		}
 
-		public Command Start()
+		public Command MapReturnValue(int value, string message)
+		{
+			if (errorCodeMap.ContainsKey(value))
+			{
+				errorCodeMap.Remove(value);
+			}
+
+			errorCodeMap.Add(value, message);
+
+			return this;
+		}
+
+		public virtual Command Start()
 		{
 			process.Start();
 			process.WaitForExit();
@@ -44,6 +59,13 @@ namespace URIScheme.Tools
 		{
 			if (ReturnValue != 0)
 			{
+				bool hasCustomMessage = errorCodeMap.TryGetValue(ReturnValue, out var message);
+
+				if (hasCustomMessage)
+				{
+					throw new SystemException($"{message} Program output: {Error}");
+				}
+
 				throw new SystemException(Error);
 			}
 			return this;
