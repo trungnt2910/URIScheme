@@ -67,6 +67,7 @@ namespace URIScheme
 			try
 			{
 				string xmlFileName = Path.Combine(tmpFolder, $"{scheme}.xml");
+				string desktopFileName = Path.Combine(tmpFolder, $"{scheme}.desktop");
 				using (var tempXMLFile = File.CreateText(xmlFileName))
 				{
 					GenerateXMLFile(tempXMLFile);
