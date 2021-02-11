@@ -43,6 +43,22 @@ namespace URIScheme
 			}
 			return false;
 		}
+		public bool CheckAny()
+		{
+			switch (registerType)
+			{
+				case RegisterType.CurrentUser:
+					var checkCommand = new Command("xdg-settings", $"get default-url-scheme-handler {scheme}");
+					checkCommand.Start();
+					string response = checkCommand.Output.Trim();
+
+					return !string.IsNullOrEmpty(response);
+				case RegisterType.LocalMachine:
+					var appsList = new MimeAppsList(RegisterType.LocalMachine);
+					return appsList.GetURISchemeHandlers(scheme).Count != 0;
+			}
+			return false;
+		}
 		public void Set()
 		{
 			string tmpFolder = Path.GetTempFileName();
@@ -60,12 +76,12 @@ namespace URIScheme
 				{
 					case RegisterType.CurrentUser:
 					{
-						var installCommand = (new Command("xdg-mime", $"install {xmlFileName} --novendor")).Start().ThrowOnError();
+						var installCommand = new Command("xdg-mime", $"install {xmlFileName} --novendor").Start().ThrowOnError();
 					}
 					break;
 					case RegisterType.LocalMachine:
 					{
-						var installCommand = (new SudoCommand("xdg-mime", $"install {xmlFileName} --mode system --novendor")).Start().ThrowOnError();
+						var installCommand = new SudoCommand("xdg-mime", $"install {xmlFileName} --mode system --novendor").Start().ThrowOnError();
 					}
 					break;
 				}
@@ -94,8 +110,8 @@ namespace URIScheme
 				{
 					case RegisterType.CurrentUser:
 					{
-						var desktopFileCommand = (new Command("desktop-file-install", $"{desktopFileName} --dir={UserDir}")).Start().ThrowOnError();
-						var setDefaultCommand = (new Command("xdg-settings", $"set default-url-scheme-handler {scheme} {scheme}.desktop"))
+						var desktopFileCommand = new Command("desktop-file-install", $"{desktopFileName} --dir={UserDir}").Start().ThrowOnError();
+						var setDefaultCommand = new Command("xdg-settings", $"set default-url-scheme-handler {scheme} {scheme}.desktop")
 													.MapReturnValue(2, "runPath does not exist.")
 													.Start()
 													.ThrowOnError();
@@ -103,7 +119,7 @@ namespace URIScheme
 					break;
 					case RegisterType.LocalMachine:
 					{
-						var desktopFileCommand = (new SudoCommand("desktop-file-install", $"{desktopFileName}")).Start().ThrowOnError();
+						var desktopFileCommand = new SudoCommand("desktop-file-install", $"{desktopFileName}").Start().ThrowOnError();
 						var mimeapps = new MimeAppsList(RegisterType.LocalMachine);
 						var list = mimeapps.GetURISchemeHandlers(scheme);
 						list.Insert(0, $"{scheme}.desktop");
@@ -138,14 +154,14 @@ namespace URIScheme
 				{
 					case RegisterType.CurrentUser:
 					{
-						var uninstallCommand = (new Command("xdg-mime", $"uninstall {xmlFileName} --novendor")).Start().ThrowOnError();
-						var deleteDesktopFileCommand = (new Command("rm", $"-f {Path.Combine(UserDir, $"{scheme}.desktop")}")).Start().ThrowOnError();
+						var uninstallCommand = new Command("xdg-mime", $"uninstall {xmlFileName} --novendor").Start().ThrowOnError();
+						var deleteDesktopFileCommand = new Command("rm", $"-f {Path.Combine(UserDir, $"{scheme}.desktop")}").Start().ThrowOnError();
 					}
 					break;
 					case RegisterType.LocalMachine:
 					{
-						var uninstallCommand = (new SudoCommand("xdg-mime", $"uninstall {xmlFileName} --mode system --novendor")).Start().ThrowOnError();
-						var deleteDesktopFileCommand = (new SudoCommand("rm", $"-f {Path.Combine(DefaultDir, $"{scheme}.desktop")}")).Start().ThrowOnError();
+						var uninstallCommand = new SudoCommand("xdg-mime", $"uninstall {xmlFileName} --mode system --novendor").Start().ThrowOnError();
+						var deleteDesktopFileCommand = new SudoCommand("rm", $"-f {Path.Combine(DefaultDir, $"{scheme}.desktop")}").Start().ThrowOnError();
 						var mimeapps = new MimeAppsList(RegisterType.LocalMachine);
 						var list = mimeapps.GetURISchemeHandlers(scheme);
 						list.RemoveAll((s) => s == $"{scheme}.desktop");

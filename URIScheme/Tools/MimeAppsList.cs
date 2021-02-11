@@ -46,7 +46,10 @@ namespace URIScheme.Tools
 				{
 					var line = reader.ReadLine().Trim();
 					if (string.IsNullOrEmpty(line))
+					{
 						continue;
+					}
+
 					if (SectionMap.ContainsKey(line))
 					{
 						currentSection = SectionMap[line];
@@ -54,7 +57,10 @@ namespace URIScheme.Tools
 					else
 					{
 						if (!currentSection.HasValue)
+						{
 							continue;
+						}
+
 						var key = line.Substring(0, line.IndexOf('=')).Trim();
 						var values = line.Substring(line.IndexOf('=') + 1);
 						Dictionary<string, List<string>> toInsert = null;
@@ -75,7 +81,9 @@ namespace URIScheme.Tools
 							toInsert[key].AddRange(values.Split(';'));
 						}
 						else
+						{
 							toInsert.Add(key, values.Split(';').ToList());
+						}
 					}
 				}
 			}
@@ -93,9 +101,10 @@ namespace URIScheme.Tools
 					tw.WriteLine("[Default Applications]");
 					foreach (var kvp in DefaultApplications)
 					{
-						if (kvp.Value.Count == 0)
-							continue;
-						tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						if (kvp.Value.Count != 0)
+						{
+							tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						}
 					}
 					tw.WriteLine();
 				}
@@ -104,9 +113,10 @@ namespace URIScheme.Tools
 					tw.WriteLine("[Added Associations]");
 					foreach (var kvp in AddedAssociations)
 					{
-						if (kvp.Value.Count == 0)
-							continue;
-						tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						if (kvp.Value.Count != 0)
+						{
+							tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						}
 					}
 					tw.WriteLine();
 				}
@@ -115,9 +125,10 @@ namespace URIScheme.Tools
 					tw.WriteLine("[Removed Associations]");
 					foreach (var kvp in RemovedAssociations)
 					{
-						if (kvp.Value.Count == 0)
-							continue;
-						tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						if (kvp.Value.Count != 0)
+						{
+							tw.WriteLine($"{kvp.Key}={string.Join(";", kvp.Value)}");
+						}
 					}
 					tw.WriteLine();
 				}
@@ -160,12 +171,12 @@ namespace URIScheme.Tools
 			// About the variable names: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
 			if (registerType == RegisterType.CurrentUser)
 			{
-				var location = Path.Combine(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"), fileName);
+				var location = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
 				if (string.IsNullOrEmpty(location))
 				{
-					location = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), fileName);
+					location = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 				}
-				return location;
+				return Path.Combine(location, fileName);
 			}
 			else //if (registerType == RegisterType.LocalMachine)
 			{

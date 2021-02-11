@@ -31,7 +31,7 @@ namespace URIScheme
 
 		private static bool IsXDG()
 		{
-			var xdgCheckCommand = (new Command("xdg-settings", "--version")).Start();
+			var xdgCheckCommand = new Command("xdg-settings", "--version").Start();
 			return xdgCheckCommand.ReturnValue == 0;
 		}
 	}

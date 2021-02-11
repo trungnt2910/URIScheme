@@ -35,7 +35,10 @@ namespace URIScheme.Tools
 		public Command MapReturnValue(int value, string message)
 		{
 			if (errorCodeMap.ContainsKey(value))
+			{
 				errorCodeMap.Remove(value);
+			}
+
 			errorCodeMap.Add(value, message);
 
 			return this;
