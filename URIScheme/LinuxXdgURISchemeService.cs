@@ -86,8 +86,6 @@ namespace URIScheme
 					break;
 				}
 
-				string desktopFileName = Path.Combine(tmpFolder, $"{scheme}.desktop");
-
 				using (var tempDesktopFile = File.CreateText(desktopFileName))
 				{
 					//				[Desktop Entry]
@@ -128,10 +126,6 @@ namespace URIScheme
 					break;
 				}
 			}
-			//catch (Exception e)
-			//{
-			//	throw e;
-			//}
 			finally
 			{
 				Directory.Delete(tmpFolder, true);
@@ -148,8 +142,7 @@ namespace URIScheme
 				using (var tempXMLFile = File.CreateText(xmlFileName))
 				{
 					GenerateXMLFile(tempXMLFile);
-				}
-				
+				}				
 				switch (registerType)
 				{
 					case RegisterType.CurrentUser:
@@ -169,10 +162,6 @@ namespace URIScheme
 					}
 					break;
 				}
-			}
-			catch (Exception e)
-			{
-				throw e;
 			}
 			finally
 			{
