@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>URISchemeTools</id>
+    <version>1.0.1</version>
+    <authors>Trung</authors>
+    <owners>Trung</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/trungnt2910/URIScheme</projectUrl>
+    <description>A cross platform solution to register your application to a URI scheme.</description>
+    <copyright>Copyright © 2021 Trung Nguyen</copyright>
+    <tags>URI Url Scheme Tools</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="SampleDependency" version="1.0.0" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

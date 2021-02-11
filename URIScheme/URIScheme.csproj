@@ -10,10 +10,11 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/trungnt2910/URIScheme</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/trungnt2910/URIScheme</RepositoryUrl>
-		<PackageTags>URI scheme manager</PackageTags>
+		<PackageTags>URI scheme manager portable</PackageTags>
 		<Version>1.0.0</Version>
-		<PackageId>URIScheme</PackageId>
+		<PackageId>URISchemeTools</PackageId>
 		<Description>A cross platform solution to register your application to a URI scheme.</Description>
+		<AssemblyName>URIScheme</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
