@@ -15,6 +15,7 @@ namespace URIScheme
 		private readonly string scheme;
 		private readonly string name;
 		private readonly string exec;
+		private readonly string desktopFileName;
 		private readonly RegisterType registerType;
 
 		private static readonly string UserDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share", "applications");
@@ -24,6 +25,7 @@ namespace URIScheme
 		{
 			scheme = key;
 			name = description;
+			desktopFileName = "{name}.desktop";
 			exec = $"{runPath} %u";
 			registerType = type;
 		}
